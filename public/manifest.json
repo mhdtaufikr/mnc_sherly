@@ -1,0 +1,16 @@
+{
+    "name": "MKM Base App",
+    "short_name": "MAPS",
+    "background_color": "rgba(0, 103, 127, 1)",
+    "description": "Base Application",
+    "display": "fullscreen",
+    "theme_color": "rgba(0, 103, 127, 1)",
+    "icons": [
+        {
+            "src": "mms.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
