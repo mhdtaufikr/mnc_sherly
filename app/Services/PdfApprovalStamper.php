@@ -65,43 +65,62 @@ class PdfApprovalStamper
 
     private function drawApprovalStamp(Fpdi $pdf, $approved, float $pageWidth, float $pageHeight): void
     {
-        $left = 10;
-        $bottom = 10;
-        $boxHeight = min(34, max(18, ceil($approved->count() / 3) * 12 + 10));
-        $y = $pageHeight - $bottom - $boxHeight;
-        $width = $pageWidth - 20;
+        $margin = 8;
+        $width = min(58, $pageWidth - ($margin * 2));
+        $chipHeight = 5.2;
+        $headerHeight = 5.5;
+        $visibleRows = min($approved->count(), 8);
+        $boxHeight = $headerHeight + ($visibleRows * $chipHeight) + 3;
+        $left = $pageWidth - $margin - $width;
+        $y = $pageHeight - $margin - $boxHeight;
 
         $pdf->SetFillColor(255, 255, 255);
-        $pdf->SetDrawColor(0, 128, 128);
+        $pdf->SetDrawColor(0, 120, 120);
         $pdf->SetLineWidth(0.25);
         $pdf->Rect($left, $y, $width, $boxHeight, 'DF');
 
-        $pdf->SetTextColor(0, 96, 96);
-        $pdf->SetFont('Arial', 'B', 7);
-        $pdf->SetXY($left + 3, $y + 2);
-        $pdf->Cell($width - 6, 4, 'APPROVAL PARAF / INITIAL', 0, 1);
+        $pdf->SetFillColor(0, 128, 128);
+        $pdf->Rect($left, $y, $width, $headerHeight, 'F');
+        $pdf->SetTextColor(255, 255, 255);
+        $pdf->SetFont('Arial', 'B', 6.5);
+        $pdf->SetXY($left + 2, $y + 1.4);
+        $pdf->Cell($width - 4, 3, 'APPROVED INITIALS', 0, 1, 'C');
 
-        $columnWidth = $width / 3;
-        $startY = $y + 8;
+        $startY = $y + $headerHeight + 1.6;
+        $pdf->SetFont('Arial', '', 5.2);
 
-        foreach ($approved->values() as $index => $approval) {
-            $column = $index % 3;
-            $row = intdiv($index, 3);
-            $x = $left + ($column * $columnWidth) + 3;
-            $itemY = $startY + ($row * 12);
+        foreach ($approved->values()->take(8) as $index => $approval) {
+            $itemY = $startY + ($index * $chipHeight);
+            $initialWidth = 9;
 
-            $pdf->SetXY($x, $itemY);
-            $pdf->SetFont('Arial', 'B', 9);
-            $pdf->SetTextColor(0, 120, 120);
-            $pdf->Cell(12, 4, $this->initials($approval->approver_name), 0, 0);
+            $pdf->SetFillColor(232, 247, 247);
+            $pdf->SetDrawColor(160, 210, 210);
+            $pdf->Rect($left + 1.5, $itemY, $width - 3, 4.4, 'DF');
+
+            $pdf->SetTextColor(0, 112, 112);
+            $pdf->SetFont('Arial', 'B', 6.5);
+            $pdf->SetXY($left + 2.3, $itemY + 0.8);
+            $pdf->Cell($initialWidth, 2.8, $this->initials($approval->approver_name), 0, 0);
 
             $pdf->SetFont('Arial', '', 6);
-            $pdf->SetTextColor(40, 40, 40);
-            $pdf->SetXY($x + 12, $itemY);
-            $pdf->Cell($columnWidth - 15, 3.5, $approval->approver_name, 0, 1);
-            $pdf->SetX($x + 12);
-            $pdf->Cell($columnWidth - 15, 3.5, $approval->approved_at?->format('d M Y H:i') ?? '-', 0, 1);
+            $pdf->SetTextColor(45, 45, 45);
+            $pdf->SetXY($left + 2.3 + $initialWidth, $itemY + 0.8);
+            $pdf->Cell($width - $initialWidth - 5, 2.8, $this->shortName($approval->approver_name) . ' - ' . ($approval->approved_at?->format('d/m/y H:i') ?? '-'), 0, 1);
         }
+
+        if ($approved->count() > 8) {
+            $pdf->SetTextColor(90, 90, 90);
+            $pdf->SetFont('Arial', '', 5.5);
+            $pdf->SetXY($left + 2, $pageHeight - $margin - 4);
+            $pdf->Cell($width - 4, 2.8, '+' . ($approved->count() - 8) . ' more approvals', 0, 0, 'R');
+        }
+    }
+
+    private function shortName(string $name): string
+    {
+        $name = trim($name);
+
+        return strlen($name) > 18 ? substr($name, 0, 17) . '.' : $name;
     }
 
     private function initials(string $name): string
