@@ -4,9 +4,17 @@
     {{-- Section title --}}
     <div class="mb-3 px-3">
       <div class="text-sidebar-text-muted text-xs font-semibold uppercase tracking-[0.2em]">
-        Configuration
+        Forms
       </div>
     </div>
+
+    <a href="{{ route('sales-contracts.create') }}"
+      class="{{ request()->is('sales-contracts*')
+          ? 'bg-sidebar-hover text-sidebar-text font-semibold'
+          : 'text-sidebar-text-soft hover:bg-sidebar-hover' }} mb-4 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition">
+      <i class="fas fa-file-contract w-4 text-center"></i>
+      Sales Order
+    </a>
 
     @if (auth()->user()->role === 'admin')
       @php

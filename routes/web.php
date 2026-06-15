@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DropdownsController;
 use App\Http\Controllers\RulesController;
+use App\Http\Controllers\SalesContractController;
 use App\Http\Controllers\ShipmentCalendarsController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +25,10 @@ Route::middleware('auth')->group(function () {
     })->name('home');
 
     Route::post('/change-password', [AuthController::class, 'changePassword'])->name('changePassword');
+
+    Route::get('/sales-contracts', [SalesContractController::class, 'index'])->name('sales-contracts.index');
+    Route::get('/sales-contracts/create', [SalesContractController::class, 'create'])->name('sales-contracts.create');
+    Route::post('/sales-contracts', [SalesContractController::class, 'store'])->name('sales-contracts.store');
 
     //Calendar Controller
     Route::get('/calendar', [ShipmentCalendarsController::class, 'index'])->name('calendar.index');

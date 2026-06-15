@@ -1,5 +1,5 @@
 @php
-  $isFormsActive = request()->is('dropdown*') || request()->is('rule*') || request()->is('user*');
+  $isFormsActive = request()->is('sales-contracts*') || request()->is('dropdown*') || request()->is('rule*') || request()->is('user*');
 @endphp
 
 <div class="relative">
@@ -16,7 +16,7 @@
         <a href="{{ route('calendar.index') }}" class="{{ request()->is('calendar*') ? 'text-white' : 'hover:text-white' }}">
           Calendar
         </a>
-        <a href="{{ url('/dropdown') }}" class="{{ $isFormsActive ? 'text-white' : 'hover:text-white' }}">
+        <a href="{{ route('sales-contracts.create') }}" class="{{ $isFormsActive ? 'text-white' : 'hover:text-white' }}">
           Forms
         </a>
       </nav>
@@ -85,7 +85,7 @@
         class="{{ request()->is('calendar*') ? 'bg-white/10 text-white' : 'hover:bg-white/10 hover:text-white' }} rounded px-3 py-2 transition">
         Calendar
       </a>
-      <a href="{{ url('/dropdown') }}" onclick="closeTopbarMenu()"
+      <a href="{{ route('sales-contracts.create') }}" onclick="closeTopbarMenu()"
         class="{{ $isFormsActive ? 'bg-white/10 text-white' : 'hover:bg-white/10 hover:text-white' }} rounded px-3 py-2 transition">
         Forms
       </a>
