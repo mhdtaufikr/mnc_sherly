@@ -65,30 +65,30 @@ class PdfApprovalStamper
 
     private function drawApprovalStamp(Fpdi $pdf, $approved, float $pageWidth, float $pageHeight): void
     {
-        $margin = 6;
+        $margin = 5;
         $visibleApprovals = $approved->values()->take(10);
         $columns = 5;
-        $chipWidth = 7.8;
-        $chipHeight = 4.3;
-        $headerHeight = 3.6;
+        $chipWidth = 6.4;
+        $chipHeight = 3.6;
+        $headerHeight = 3.2;
         $rows = max(1, (int) ceil($visibleApprovals->count() / $columns));
-        $width = ($columns * $chipWidth) + 4;
-        $boxHeight = $headerHeight + ($rows * $chipHeight) + 2.2;
+        $width = ($columns * $chipWidth) + 3;
+        $boxHeight = $headerHeight + ($rows * $chipHeight) + 1.5;
         $left = $pageWidth - $margin - $width;
-        $y = $pageHeight - $margin - $boxHeight;
+        $y = $margin;
 
         $pdf->SetFillColor(255, 255, 255);
-        $pdf->SetDrawColor(0, 140, 140);
-        $pdf->SetLineWidth(0.15);
-        $pdf->Rect($left, $y, $width, $boxHeight, 'D');
+        $pdf->SetDrawColor(215, 235, 235);
+        $pdf->SetLineWidth(0.1);
+        $pdf->Rect($left, $y, $width, $boxHeight, 'DF');
 
         $pdf->SetTextColor(0, 115, 115);
-        $pdf->SetFont('Arial', 'B', 5.5);
-        $pdf->SetXY($left + 1.4, $y + 0.9);
-        $pdf->Cell($width - 2.8, 2.5, 'APPROVED', 0, 1, 'R');
+        $pdf->SetFont('Arial', 'B', 4.7);
+        $pdf->SetXY($left + 1.2, $y + 0.75);
+        $pdf->Cell($width - 2.4, 2.2, 'APPROVED', 0, 1, 'R');
 
-        $startX = $left + 1.8;
-        $startY = $y + $headerHeight + 0.9;
+        $startX = $left + 1.3;
+        $startY = $y + $headerHeight + 0.35;
 
         foreach ($visibleApprovals as $index => $approval) {
             $column = $index % $columns;
@@ -97,14 +97,14 @@ class PdfApprovalStamper
             $itemY = $startY + ($row * $chipHeight);
 
             $pdf->SetDrawColor(0, 140, 140);
-            $pdf->Rect($itemX, $itemY + 0.7, 2.4, 2.4, 'D');
-            $pdf->Line($itemX + 0.45, $itemY + 1.9, $itemX + 1.0, $itemY + 2.55);
-            $pdf->Line($itemX + 1.0, $itemY + 2.55, $itemX + 2.05, $itemY + 1.2);
+            $pdf->Rect($itemX, $itemY + 0.55, 2.0, 2.0, 'D');
+            $pdf->Line($itemX + 0.35, $itemY + 1.55, $itemX + 0.82, $itemY + 2.05);
+            $pdf->Line($itemX + 0.82, $itemY + 2.05, $itemX + 1.72, $itemY + 0.95);
 
             $pdf->SetTextColor(0, 112, 112);
-            $pdf->SetFont('Arial', 'B', 5.2);
-            $pdf->SetXY($itemX + 2.9, $itemY + 0.65);
-            $pdf->Cell($chipWidth - 2.9, 2.6, $this->initials($approval->approver_name), 0, 0);
+            $pdf->SetFont('Arial', 'B', 4.8);
+            $pdf->SetXY($itemX + 2.45, $itemY + 0.45);
+            $pdf->Cell($chipWidth - 2.45, 2.4, $this->initials($approval->approver_name), 0, 0);
         }
     }
 
