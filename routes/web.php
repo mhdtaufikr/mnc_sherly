@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DropdownsController;
 use App\Http\Controllers\RulesController;
+use App\Http\Controllers\ShipmentCalendarsController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +24,13 @@ Route::middleware('auth')->group(function () {
     })->name('home');
 
     Route::post('/change-password', [AuthController::class, 'changePassword'])->name('changePassword');
+
+    //Calendar Controller
+    Route::get('/calendar', [ShipmentCalendarsController::class, 'index'])->name('calendar.index');
+    Route::get('/calendar/events', [ShipmentCalendarsController::class, 'events'])->name('calendar.events');
+    Route::post('/calendar', [ShipmentCalendarsController::class, 'store'])->name('calendar.store');
+    Route::put('/calendar/{calendar}', [ShipmentCalendarsController::class, 'update'])->name('calendar.update');
+    Route::delete('/calendar/{calendar}', [ShipmentCalendarsController::class, 'destroy'])->name('calendar.destroy');
 
     //Dropdown Controller
     Route::get('/dropdown', [DropdownsController::class, 'index'])->name('dropdown.index');

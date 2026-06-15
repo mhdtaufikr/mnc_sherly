@@ -12,8 +12,10 @@ return new class extends Migration
             $table->id();
             $table->string('category');
             $table->string('name_value');
-            $table->string('code_format');
+            $table->string('code_format')->nullable();
             $table->timestamps();
+
+            $table->unique(['category', 'code_format']);
         });
     }
 
@@ -22,4 +24,3 @@ return new class extends Migration
         Schema::dropIfExists('dropdowns');
     }
 };
-

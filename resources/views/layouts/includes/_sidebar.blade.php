@@ -8,7 +8,7 @@
       </div>
     </div>
 
-    @if (auth()->user()->role === 'IT')
+    @if (auth()->user()->role === 'admin')
       @php
         $masterConfigOpen = request()->is('dropdown*') || request()->is('rule*') || request()->is('user*');
       @endphp

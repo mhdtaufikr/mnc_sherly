@@ -39,6 +39,22 @@ return new class extends Migration
             ");
         }
 
+        if (Schema::hasColumn('users', 'role')) {
+            DB::statement("
+                UPDATE users
+                SET role = CASE
+                    WHEN LOWER(role) IN ('admin', 'it', 'super admin') THEN 'admin'
+                    ELSE 'user'
+                END
+            ");
+
+            DB::statement("
+                ALTER TABLE users
+                MODIFY role ENUM('admin','user')
+                NOT NULL DEFAULT 'user'
+            ");
+        }
+
         if (Schema::hasColumn('users', 'status')) {
             DB::statement("
                 UPDATE users
@@ -86,6 +102,13 @@ return new class extends Migration
                 DB::statement("
                     ALTER TABLE users
                     MODIFY status VARCHAR(45)
+                ");
+            }
+
+            if (Schema::hasColumn('users', 'role')) {
+                DB::statement("
+                    ALTER TABLE users
+                    MODIFY role VARCHAR(255)
                 ");
             }
         });

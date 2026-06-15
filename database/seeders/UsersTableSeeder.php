@@ -5,54 +5,51 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Carbon;
 
 class UsersTableSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('users')->insert([
-            [
-                'name' => 'IT',
-                'username' => 'it', // Added username
-                'email' => 'it@ptmkm.co.id',
-                'email_verified_at' => null,
-                'password' => Hash::make('Password.1'), // Example hash for demonstration
-                'remember_token' => null,
-                'role' => 'IT',
-                'last_login' => '2025-03-06 08:52:48', // Updated date to match your current data
-                'login_counter' => 60, // Updated login counter
-                'is_active' => '1',
-                'created_at' => '2023-07-08 05:42:25',
-                'updated_at' => '2025-03-06 08:52:48', // Updated date to match your current data
-            ],
+        $now = Carbon::now();
+
+        DB::table('users')->upsert([
             [
                 'name' => 'Admin',
-                'username' => 'admin', // Added username
-                'email' => 'admin@ptmkm.co.id',
+                'username' => 'admin',
+                'email' => 'admin@mnc-project.local',
                 'email_verified_at' => null,
-                'password' => Hash::make('Password.1'), // Example hash for demonstration
+                'password' => Hash::make('Password.1'),
                 'remember_token' => null,
-                'role' => 'Super Admin',
-                'last_login' => '2023-08-15 11:38:49',
-                'login_counter' => 1,
-                'is_active' => '1',
-                'created_at' => '2023-07-08 05:42:25',
-                'updated_at' => '2023-08-15 11:38:49',
+                'role' => 'admin',
+                'status' => 'ACTIVE',
+                'is_active' => true,
+                'login_counter' => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
                 'name' => 'User',
-                'username' => 'user', // Added username
-                'email' => 'user@ptmkm.co.id',
+                'username' => 'user',
+                'email' => 'user@mnc-project.local',
                 'email_verified_at' => null,
-                'password' => Hash::make('Password.1'), // Example hash for demonstration
+                'password' => Hash::make('Password.1'),
                 'remember_token' => null,
-                'role' => 'User',
-                'last_login' => '2023-08-15 11:38:49',
-                'login_counter' => 1,
-                'is_active' => '1',
-                'created_at' => '2023-07-08 05:42:25',
-                'updated_at' => '2023-08-15 11:38:49',
+                'role' => 'user',
+                'status' => 'ACTIVE',
+                'is_active' => true,
+                'login_counter' => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]
+        ], ['email'], [
+            'name',
+            'username',
+            'password',
+            'role',
+            'status',
+            'is_active',
+            'updated_at',
         ]);
     }
 }

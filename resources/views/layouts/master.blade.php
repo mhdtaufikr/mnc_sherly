@@ -9,7 +9,7 @@
   <meta name="author" content="" />
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
-  <title>MKM Work Permit</title>
+  <title>mnc Project</title>
 
   <link rel="icon" href="{{ asset('assets/img/mms.png') }}">
   <meta name="theme-color" content="rgba(0, 103, 127, 1)" />
@@ -21,66 +21,41 @@
 
 <body class="bg-page text-text h-full antialiased">
   <div class="flex h-screen flex-col overflow-hidden">
-    <header class="border-border bg-surface/95 sticky top-0 z-40 border-b backdrop-blur">
+    <header class="sticky top-0 z-40">
       @include('layouts.includes._topbar')
     </header>
 
-    <div class="flex min-h-0 flex-1 items-stretch overflow-hidden">
-      <aside id="desktopSidebar"
-        class="border-sidebar-border bg-sidebar hidden w-72 shrink-0 overflow-hidden border-r text-white lg:flex lg:flex-col">
-        @include('layouts.includes._sidebar')
-      </aside>
+    <main id="mainContent" class="min-h-0 flex flex-1 flex-col overflow-y-auto">
+      @if (session('password'))
+        <script>
+          window.addEventListener('DOMContentLoaded', function() {
+            alert(@json(session('password')));
+          });
+        </script>
+      @endif
 
-      <main id="mainContent" class="min-w-0 flex flex-1 flex-col overflow-y-auto">
-        @if (session('password'))
-          <script>
-            window.addEventListener('DOMContentLoaded', function() {
-              alert(@json(session('password')));
-            });
-          </script>
-        @endif
+      <div class="mx-auto flex-1 w-full max-w-screen-2xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+        @yield('content')
+      </div>
 
-        <div class="mx-auto flex-1 w-full max-w-screen-2xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-          @yield('content')
-        </div>
-
-        <footer class="border-border bg-surface mt-auto border-t">
-          <div
-            class="text-muted mx-auto flex w-full max-w-screen-2xl flex-col gap-2 px-4 py-4 text-sm sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-            <div></div>
-            <div class="text-left lg:text-right">
-              Copyright PT Mitsubishi Krama Yudha Motors and Manufacturing &copy; {{ now()->year }}
-            </div>
+      <footer class="border-border bg-surface mt-auto border-t">
+        <div
+          class="text-muted mx-auto flex w-full max-w-screen-2xl flex-col gap-2 px-4 py-4 text-sm sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+          <div></div>
+          <div class="text-left lg:text-right">
+            Copyright mnc Project &copy; {{ now()->year }}
           </div>
-        </footer>
-      </main>
-    </div>
+        </div>
+      </footer>
+    </main>
   </div>
-
-  <div id="mobileSidebarBackdrop" class="fixed inset-0 z-40 hidden bg-black/40 lg:hidden"></div>
-
-  <aside id="mobileSidebar"
-    class="border-sidebar-border bg-sidebar fixed inset-y-0 left-0 z-50 w-72 -translate-x-full overflow-y-auto border-r text-white shadow-xl transition-transform duration-300 lg:hidden">
-    <div class="border-border flex items-center justify-between border-b px-4 py-4">
-      <div class="text-text font-semibold">Menu</div>
-      <button type="button" id="closeMobileSidebar"
-        class="border-border text-text hover:bg-surface-muted inline-flex h-10 w-10 items-center justify-center rounded-lg border transition">
-        ✕
-      </button>
-    </div>
-
-    <div class="h-full p-2">
-      @include('layouts.includes._sidebar')
-    </div>
-  </aside>
-
   <div id="changePasswordModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 px-4">
     <div class="border-border bg-surface w-full max-w-md rounded-2xl border shadow-2xl">
       <div class="border-border flex items-center justify-between border-b px-5 py-4">
         <h2 class="text-text text-lg font-semibold">Change Password</h2>
         <button type="button" data-close-modal
           class="border-border text-text hover:bg-surface-muted inline-flex h-10 w-10 items-center justify-center rounded-lg border transition">
-          ✕
+          x
         </button>
       </div>
 
@@ -213,10 +188,8 @@
       const timeoutWarning = 3300000;
 
       const loader = document.getElementById('loader');
-      const desktopSidebar = document.getElementById('desktopSidebar');
-      const mobileSidebar = document.getElementById('mobileSidebar');
-      const mobileSidebarBackdrop = document.getElementById('mobileSidebarBackdrop');
-      const closeMobileSidebar = document.getElementById('closeMobileSidebar');
+      const mobileTopbarMenu = document.getElementById('mobileTopbarMenu');
+      const mobileTopbarMenuButton = document.getElementById('mobileTopbarMenuButton');
       const changePasswordModal = document.getElementById('changePasswordModal');
       const closeButtons = document.querySelectorAll('[data-close-modal]');
       const userMenuButton = document.getElementById('userMenuButton');
@@ -280,39 +253,13 @@
         window.Confirm = Confirm;
       }
 
-      if (desktopSidebar) {
-        desktopSidebar.dataset.collapsed = 'false';
-      }
-
-      window.toggleSidebar = function() {
-        if (window.innerWidth < 1024) {
-          mobileSidebar?.classList.toggle('-translate-x-full');
-          mobileSidebarBackdrop?.classList.toggle('hidden');
-          return;
-        }
-
-        if (!desktopSidebar) return;
-
-        const isCollapsed = desktopSidebar.dataset.collapsed === 'true';
-
-        if (isCollapsed) {
-          desktopSidebar.classList.remove('hidden');
-          desktopSidebar.classList.add('lg:flex');
-          desktopSidebar.dataset.collapsed = 'false';
-        } else {
-          desktopSidebar.classList.add('hidden');
-          desktopSidebar.classList.remove('lg:flex');
-          desktopSidebar.dataset.collapsed = 'true';
-        }
+      window.toggleTopbarMenu = function() {
+        mobileTopbarMenu?.classList.toggle('hidden');
       };
 
-      window.closeMobileSidebar = function() {
-        mobileSidebar?.classList.add('-translate-x-full');
-        mobileSidebarBackdrop?.classList.add('hidden');
+      window.closeTopbarMenu = function() {
+        mobileTopbarMenu?.classList.add('hidden');
       };
-
-      closeMobileSidebar?.addEventListener('click', window.closeMobileSidebar);
-      mobileSidebarBackdrop?.addEventListener('click', window.closeMobileSidebar);
 
       window.openChangePasswordModal = function() {
         changePasswordModal?.classList.remove('hidden');
@@ -360,9 +307,17 @@
       });
 
       document.addEventListener('click', function(e) {
-        if (!userMenu || !userMenuButton) return;
-        if (!userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
+        if (userMenu && userMenuButton && !userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
           closeUserMenu();
+        }
+
+        if (
+          mobileTopbarMenu &&
+          mobileTopbarMenuButton &&
+          !mobileTopbarMenu.contains(e.target) &&
+          !mobileTopbarMenuButton.contains(e.target)
+        ) {
+          closeTopbarMenu();
         }
       });
 
@@ -471,3 +426,4 @@
 </body>
 
 </html>
+

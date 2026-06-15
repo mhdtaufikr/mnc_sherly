@@ -93,7 +93,7 @@ class UsersController extends Controller
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6', 'max:255'],
-            'role'     => ['required', 'string', 'max:255'],
+            'role'     => ['required', Rule::in(['admin', 'user'])],
         ]);
 
         User::create([
@@ -121,7 +121,7 @@ class UsersController extends Controller
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($user->id)],
             'email'    => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:6', 'max:255'],
-            'role'     => ['required', 'string', 'max:255'],
+            'role'     => ['required', Rule::in(['admin', 'user'])],
         ]);
 
         $payload = [
@@ -148,7 +148,7 @@ class UsersController extends Controller
     {
         User::where('id', $id)->update([
             'is_active' => false,
-            'status'    => 'INACTIVE',
+            'status'    => 'SUSPENDED',
         ]);
 
         return response()->json(['ok' => true]);

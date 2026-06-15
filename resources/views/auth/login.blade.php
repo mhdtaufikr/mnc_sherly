@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+  <title>mnc Project Login</title>
   <link rel="icon" href="{{ asset('assets/img/mms.png') }}">
 
   @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -20,8 +20,8 @@
 
         <div class="absolute inset-0 flex items-center justify-center">
           <div class="rounded-2xl bg-black/35 px-8 py-6 text-center text-white backdrop-blur-sm">
-            <h1 class="text-3xl font-bold">MKM Base App</h1>
-            <p class="mt-2 text-sm opacity-90">Base Application</p>
+            <h1 class="text-3xl font-bold">mnc Project</h1>
+            <p class="mt-2 text-sm opacity-90">Project Management System</p>
           </div>
         </div>
       </div>
@@ -32,8 +32,8 @@
 
         <div class="mb-6 text-center">
           <img src="{{ asset('assets/img/mms.png') }}" class="mx-auto mb-3 h-12" alt="Logo">
-          <h2 class="text-xl font-bold">MKM Base App</h2>
-          <p class="text-muted text-sm">Base Application</p>
+          <h2 class="text-xl font-bold">mnc Project</h2>
+          <p class="text-muted text-sm">Project Management System</p>
         </div>
 
         @if (session('statusLogin'))
@@ -81,11 +81,11 @@
         <a href="#"
           class="border-border hover:bg-surface-muted flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium">
           <i class="fab fa-windows"></i>
-          Continue with MKM Account
+          Continue with mnc Project Account
         </a>
 
         <div class="text-muted mt-6 text-center text-xs">
-          © {{ now()->year }} PT Mitsubishi Krama Yudha Motors and Manufacturing
+          &copy; {{ now()->year }} mnc Project
         </div>
       </div>
     </div>
@@ -95,3 +95,4 @@
 </body>
 
 </html>
+
