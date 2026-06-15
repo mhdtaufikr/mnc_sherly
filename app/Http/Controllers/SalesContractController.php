@@ -6,6 +6,7 @@ use App\Models\SalesContract;
 use App\Models\SalesContractApproval;
 use App\Models\ShipmentCalendar;
 use App\Models\User;
+use App\Services\PdfApprovalStamper;
 use App\Support\SalesApprovalRoute;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -43,8 +44,11 @@ class SalesContractController extends Controller
         return view('sales-contracts.show', compact('salesContract'));
     }
 
-    public function contractFile(SalesContract $salesContract)
+    public function contractFile(SalesContract $salesContract, PdfApprovalStamper $stamper)
     {
+        $this->refreshStampedPdfIfNeeded($salesContract, $stamper);
+        $salesContract->refresh();
+
         $path = $salesContract->stamped_contract_file_path ?: $salesContract->contract_file_path;
 
         abort_unless($path && Storage::disk('public')->exists($path), 404);
@@ -56,6 +60,32 @@ class SalesContractController extends Controller
         return response()->file(Storage::disk('public')->path($path), [
             'Content-Disposition' => 'inline; filename="' . addslashes($name) . '"',
         ]);
+    }
+
+    private function refreshStampedPdfIfNeeded(SalesContract $salesContract, PdfApprovalStamper $stamper): void
+    {
+        if (! $salesContract->contract_file_path || strtolower(pathinfo($salesContract->contract_file_path, PATHINFO_EXTENSION)) !== 'pdf') {
+            return;
+        }
+
+        $latestApprovalAt = $salesContract->approvals()
+            ->where('status', 'Approved')
+            ->max('approved_at');
+
+        if (! $latestApprovalAt) {
+            return;
+        }
+
+        if (! $salesContract->stamped_contract_file_path || ! Storage::disk('public')->exists($salesContract->stamped_contract_file_path)) {
+            $stamper->stamp($salesContract);
+            return;
+        }
+
+        $stampedModifiedAt = Storage::disk('public')->lastModified($salesContract->stamped_contract_file_path);
+
+        if (strtotime($latestApprovalAt) > $stampedModifiedAt) {
+            $stamper->stamp($salesContract);
+        }
     }
 
     private function formData(?SalesContract $salesContract = null): array
