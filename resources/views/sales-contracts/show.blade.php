@@ -6,6 +6,13 @@
   $displayFinalStatus = $approvalTotal > 0 && $approvedTotal === $approvalTotal
       ? 'Revision Approved'
       : $salesContract->final_status;
+  $finalStatusClass = match ($displayFinalStatus) {
+      'Revision Approved' => 'bg-green-100 text-green-700',
+      'On Hold' => 'bg-amber-100 text-amber-700',
+      'Wait for Approval', 'Pending Approval', 'Request Sign' => 'bg-sky-100 text-sky-700',
+      'Cancelled' => 'bg-red-100 text-red-700',
+      default => 'bg-slate-100 text-slate-700',
+  };
 @endphp
 
 @section('content')
@@ -57,7 +64,13 @@
           ] as $label => $value)
             <div class="grid grid-cols-[150px_1fr] gap-3">
               <dt class="text-slate-500">{{ $label }}</dt>
-              <dd class="font-medium text-slate-800">{{ $value ?: '-' }}</dd>
+              <dd class="font-medium text-slate-800">
+                @if ($label === 'Final Status' && $value)
+                  <span class="inline-flex px-2 py-1 text-xs font-semibold {{ $finalStatusClass }}">{{ $value }}</span>
+                @else
+                  {{ $value ?: '-' }}
+                @endif
+              </dd>
             </div>
           @endforeach
         </dl>

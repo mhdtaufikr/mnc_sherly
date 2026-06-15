@@ -43,6 +43,13 @@
                 $displayStatus = $approvalTotal > 0 && $approvedTotal === $approvalTotal
                     ? 'Revision Approved'
                     : ($contract->final_status ?? $contract->draft_status);
+                $statusClass = match ($displayStatus) {
+                    'Revision Approved' => 'bg-green-100 text-green-700',
+                    'On Hold' => 'bg-amber-100 text-amber-700',
+                    'Wait for Approval', 'Pending Approval', 'Request Sign' => 'bg-sky-100 text-sky-700',
+                    'Cancelled' => 'bg-red-100 text-red-700',
+                    default => 'bg-slate-100 text-slate-700',
+                };
               @endphp
               <tr class="border-b border-slate-100 text-slate-700 hover:bg-slate-50">
                 <td class="px-3 py-3 font-semibold text-slate-900">{{ $contract->contract_number }}</td>
@@ -68,7 +75,7 @@
                   @endif
                 </td>
                 <td class="px-3 py-3">
-                  <span class="inline-flex bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
+                  <span class="inline-flex px-2 py-1 text-xs font-semibold {{ $statusClass }}">
                     {{ $displayStatus }}
                   </span>
                 </td>
