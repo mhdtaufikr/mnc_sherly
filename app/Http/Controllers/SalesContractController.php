@@ -12,7 +12,12 @@ class SalesContractController extends Controller
 {
     public function index()
     {
-        return redirect()->route('sales-contracts.create');
+        $contracts = SalesContract::query()
+            ->with('shipmentCalendar')
+            ->latest()
+            ->paginate(15);
+
+        return view('sales-contracts.index', compact('contracts'));
     }
 
     public function create()
@@ -55,7 +60,7 @@ class SalesContractController extends Controller
         });
 
         return redirect()
-            ->route('sales-contracts.create')
+            ->route('sales-contracts.index')
             ->with('success', 'Sales contract saved successfully');
     }
 

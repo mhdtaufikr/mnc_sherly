@@ -8,12 +8,19 @@
       </div>
     </div>
 
-    <a href="{{ route('sales-contracts.create') }}"
-      class="{{ request()->is('sales-contracts*')
+    <a href="{{ route('sales-contracts.index') }}"
+      class="{{ request()->routeIs('sales-contracts.index')
           ? 'bg-sidebar-hover text-sidebar-text font-semibold'
-          : 'text-sidebar-text-soft hover:bg-sidebar-hover' }} mb-4 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition">
+          : 'text-sidebar-text-soft hover:bg-sidebar-hover' }} flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition">
       <i class="fas fa-file-contract w-4 text-center"></i>
       Sales Order
+    </a>
+
+    <a href="{{ route('sales-contracts.create') }}"
+      class="{{ request()->routeIs('sales-contracts.create')
+          ? 'bg-sidebar-hover text-sidebar-text font-semibold'
+          : 'text-sidebar-text-soft hover:bg-sidebar-hover' }} mb-4 ml-7 block rounded-xl px-3 py-2.5 text-sm transition">
+      New Sales Order
     </a>
 
     @if (auth()->user()->role === 'admin')
