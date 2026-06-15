@@ -19,9 +19,13 @@ class SalesContractController extends Controller
     public function index()
     {
         $contracts = SalesContract::query()
-            ->with('shipmentCalendar')
+            ->with(['shipmentCalendar', 'approvals'])
             ->latest()
             ->paginate(15);
+
+        $contracts->getCollection()->each(function (SalesContract $contract) {
+            $this->refreshApprovalStatusFromLogs($contract);
+        });
 
         return view('sales-contracts.index', compact('contracts'));
     }
@@ -85,6 +89,43 @@ class SalesContractController extends Controller
 
         if (strtotime($latestApprovalAt) > $stampedModifiedAt) {
             $stamper->stamp($salesContract);
+        }
+    }
+
+    private function refreshApprovalStatusFromLogs(SalesContract $salesContract): void
+    {
+        if ($salesContract->approvals->isEmpty()) {
+            return;
+        }
+
+        $totalApprovals = $salesContract->approvals->count();
+        $approvedCount = $salesContract->approvals->where('status', 'Approved')->count();
+
+        if ($approvedCount === $totalApprovals && $salesContract->final_status !== 'Revision Approved') {
+            $salesContract->update([
+                'approval_status' => 'Full Signed',
+                'final_status' => 'Revision Approved',
+            ]);
+
+            $salesContract->approval_status = 'Full Signed';
+            $salesContract->final_status = 'Revision Approved';
+
+            return;
+        }
+
+        $initialPending = $salesContract->approvals
+            ->where('approval_stage', 'initial')
+            ->where('status', '!=', 'Approved')
+            ->count();
+
+        if ($initialPending === 0 && $approvedCount < $totalApprovals && $salesContract->approval_status !== 'Half Signed') {
+            $salesContract->update([
+                'approval_status' => 'Half Signed',
+                'final_status' => $salesContract->final_status ?: 'Wait for Approval',
+            ]);
+
+            $salesContract->approval_status = 'Half Signed';
+            $salesContract->final_status = $salesContract->final_status ?: 'Wait for Approval';
         }
     }
 

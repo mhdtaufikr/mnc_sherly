@@ -49,7 +49,9 @@ class SalesContractApprovalController extends Controller
             'approved_at' => now(),
         ]);
 
-        $stamper->stamp($approval->salesContract()->with('approvals')->first());
+        $salesContract = $approval->salesContract()->with('approvals')->first();
+        $this->refreshSalesContractStatus($salesContract);
+        $stamper->stamp($salesContract->fresh('approvals'));
 
         return redirect()->back()->with('success', 'Sales order approved successfully.');
     }
@@ -60,6 +62,48 @@ class SalesContractApprovalController extends Controller
             ->where('approval_stage', 'initial')
             ->where('status', '!=', 'Approved')
             ->exists();
+    }
+
+    private function refreshSalesContractStatus(SalesContract $salesContract): void
+    {
+        $salesContract->load('approvals');
+
+        $totalApprovals = $salesContract->approvals->count();
+        $approvedCount = $salesContract->approvals->where('status', 'Approved')->count();
+
+        if ($totalApprovals === 0) {
+            return;
+        }
+
+        if ($approvedCount === $totalApprovals) {
+            $salesContract->update([
+                'approval_status' => 'Full Signed',
+                'final_status' => 'Revision Approved',
+            ]);
+
+            return;
+        }
+
+        $initialPending = $salesContract->approvals
+            ->where('approval_stage', 'initial')
+            ->where('status', '!=', 'Approved')
+            ->count();
+
+        if ($initialPending === 0) {
+            $salesContract->update([
+                'approval_status' => 'Half Signed',
+                'final_status' => $salesContract->final_status ?: 'Wait for Approval',
+            ]);
+
+            return;
+        }
+
+        if ($approvedCount > 0) {
+            $salesContract->update([
+                'approval_status' => 'Request Sign',
+                'final_status' => $salesContract->final_status ?: 'Wait for Approval',
+            ]);
+        }
     }
 
     private function ensureApprovalRoutes(): void
