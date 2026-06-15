@@ -10,6 +10,12 @@ class PdfApprovalStamper
 {
     public function stamp(SalesContract $salesContract): ?string
     {
+        if (! class_exists(Fpdi::class)) {
+            report('PDF approval stamping skipped: setasign/fpdi is not installed. Run composer install on the server.');
+
+            return null;
+        }
+
         if (! $this->isPdf($salesContract->contract_file_path)) {
             return null;
         }
