@@ -59,10 +59,13 @@
         <h2 class="border-b border-slate-300 pb-2 text-base font-bold text-slate-800">Attachment</h2>
         <div class="mt-4 text-sm">
           @if ($salesContract->contract_file_path)
-            <a href="{{ asset('storage/' . $salesContract->contract_file_path) }}" target="_blank"
+            <a href="{{ route('sales-contracts.contract-file', $salesContract) }}" target="_blank"
               class="font-semibold text-teal-700 hover:text-teal-900 hover:underline">
-              {{ $salesContract->contract_file_name ?? 'Open contract file' }}
+              {{ $salesContract->stamped_contract_file_path ? ($salesContract->stamped_contract_file_name ?? 'Open stamped PDF') : ($salesContract->contract_file_name ?? 'Open contract file') }}
             </a>
+            @if ($salesContract->stamped_contract_file_path)
+              <div class="mt-2 text-xs font-semibold text-green-700">Approval paraf has been injected into this PDF.</div>
+            @endif
           @else
             <span class="text-slate-500">No file uploaded.</span>
           @endif

@@ -78,9 +78,9 @@
                 </td>
                 <td class="px-3 py-3">
                   @if ($contract->contract_file_path)
-                    <a href="{{ asset('storage/' . $contract->contract_file_path) }}" target="_blank"
+                    <a href="{{ route('sales-contracts.contract-file', $contract) }}" target="_blank"
                       class="text-teal-700 hover:text-teal-900 hover:underline">
-                      {{ $contract->contract_file_name ?? 'Open file' }}
+                      {{ $contract->stamped_contract_file_path ? 'Stamped PDF' : ($contract->contract_file_name ?? 'Open file') }}
                     </a>
                   @else
                     <span class="text-slate-400">No file</span>

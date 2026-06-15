@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SalesContractApproval;
 use App\Models\SalesContract;
 use App\Models\User;
+use App\Services\PdfApprovalStamper;
 use App\Support\SalesApprovalRoute;
 use Illuminate\Http\Request;
 
@@ -28,7 +29,7 @@ class SalesContractApprovalController extends Controller
         return view('approvals.index', compact('approvals'));
     }
 
-    public function approve(SalesContractApproval $approval)
+    public function approve(SalesContractApproval $approval, PdfApprovalStamper $stamper)
     {
         $user = auth()->user();
 
@@ -47,6 +48,8 @@ class SalesContractApprovalController extends Controller
             'status' => 'Approved',
             'approved_at' => now(),
         ]);
+
+        $stamper->stamp($approval->salesContract()->with('approvals')->first());
 
         return redirect()->back()->with('success', 'Sales order approved successfully.');
     }

@@ -60,6 +60,8 @@ class SalesContract extends Model
         'final_status',
         'contract_file_path',
         'contract_file_name',
+        'stamped_contract_file_path',
+        'stamped_contract_file_name',
     ];
 
     protected function casts(): array

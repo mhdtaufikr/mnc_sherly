@@ -443,9 +443,9 @@
 
             <h3 class="text-base font-bold text-slate-800">Upload Contract</h3>
             @if ($isEdit && $salesContract->contract_file_path)
-              <a href="{{ asset('storage/' . $salesContract->contract_file_path) }}" target="_blank"
+              <a href="{{ route('sales-contracts.contract-file', $salesContract) }}" target="_blank"
                 class="mt-3 inline-flex text-sm font-semibold text-teal-700 hover:text-teal-900 hover:underline">
-                Current file: {{ $salesContract->contract_file_name ?? 'Open contract file' }}
+                Current file: {{ $salesContract->stamped_contract_file_name ?? $salesContract->contract_file_name ?? 'Open contract file' }}
               </a>
             @endif
             <label class="mt-4 flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-teal-200 bg-teal-50/60 px-4 py-8 text-center transition hover:bg-teal-50">

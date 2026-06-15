@@ -43,6 +43,21 @@ class SalesContractController extends Controller
         return view('sales-contracts.show', compact('salesContract'));
     }
 
+    public function contractFile(SalesContract $salesContract)
+    {
+        $path = $salesContract->stamped_contract_file_path ?: $salesContract->contract_file_path;
+
+        abort_unless($path && Storage::disk('public')->exists($path), 404);
+
+        $name = $salesContract->stamped_contract_file_name
+            ?: $salesContract->contract_file_name
+            ?: basename($path);
+
+        return response()->file(Storage::disk('public')->path($path), [
+            'Content-Disposition' => 'inline; filename="' . addslashes($name) . '"',
+        ]);
+    }
+
     private function formData(?SalesContract $salesContract = null): array
     {
         $buyers = SalesContract::query()
@@ -99,6 +114,10 @@ class SalesContractController extends Controller
                 Storage::disk('public')->delete($salesContract->contract_file_path);
             }
 
+            if ($salesContract->stamped_contract_file_path) {
+                Storage::disk('public')->delete($salesContract->stamped_contract_file_path);
+            }
+
             $salesContract->delete();
         });
 
@@ -126,12 +145,20 @@ class SalesContractController extends Controller
                 Storage::disk('public')->delete($salesContract->contract_file_path);
             }
 
+            if ($salesContract?->stamped_contract_file_path) {
+                Storage::disk('public')->delete($salesContract->stamped_contract_file_path);
+            }
+
             $file = $request->file('contract_file');
             $payload['contract_file_path'] = $file->store('contracts', 'public');
             $payload['contract_file_name'] = $file->getClientOriginalName();
+            $payload['stamped_contract_file_path'] = null;
+            $payload['stamped_contract_file_name'] = null;
         } elseif ($salesContract) {
             $payload['contract_file_path'] = $salesContract->contract_file_path;
             $payload['contract_file_name'] = $salesContract->contract_file_name;
+            $payload['stamped_contract_file_path'] = $salesContract->stamped_contract_file_path;
+            $payload['stamped_contract_file_name'] = $salesContract->stamped_contract_file_name;
         }
 
         return $payload;
@@ -267,6 +294,8 @@ class SalesContractController extends Controller
             'approval_date' => null,
             'revision_note' => null,
             'final_status' => null,
+            'stamped_contract_file_path' => null,
+            'stamped_contract_file_name' => null,
         ];
     }
 
