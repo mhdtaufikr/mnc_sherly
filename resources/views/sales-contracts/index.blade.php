@@ -38,12 +38,16 @@
             @forelse ($contracts as $contract)
               <tr class="border-b border-slate-100 text-slate-700 hover:bg-slate-50">
                 <td class="px-3 py-3 font-semibold text-slate-900">{{ $contract->contract_number }}</td>
-                <td class="px-3 py-3">{{ $contract->buyer_name }}</td>
-                <td class="px-3 py-3">{{ $contract->seller_entity }}</td>
-                <td class="px-3 py-3">{{ $contract->market_type }}</td>
-                <td class="px-3 py-3">{{ $contract->commodity }}</td>
+                <td class="px-3 py-3">{{ $contract->buyer_name ?: '-' }}</td>
+                <td class="px-3 py-3">{{ $contract->seller_entity ?: '-' }}</td>
+                <td class="px-3 py-3">{{ $contract->market_type ?: '-' }}</td>
+                <td class="px-3 py-3">{{ $contract->commodity ?: '-' }}</td>
                 <td class="px-3 py-3">
-                  {{ number_format((float) ($contract->sales_quantity_mt ?? $contract->contract_quantity_mt), 2) }} MT
+                  @if ($contract->sales_quantity_mt || $contract->contract_quantity_mt)
+                    {{ number_format((float) ($contract->sales_quantity_mt ?? $contract->contract_quantity_mt), 2) }} MT
+                  @else
+                    <span class="text-slate-400">-</span>
+                  @endif
                 </td>
                 <td class="px-3 py-3">
                   @if ($contract->laycan_start_date)

@@ -16,8 +16,8 @@
   $barges = ['FOB Barge', 'FOB MV GNG', 'FOB MV Gearless'];
   $dmoStatuses = ['DMO', 'Non DMO'];
   $laycanStatuses = ['Confirm', 'Nego Laycan'];
-  $approvalStatuses = ['Half Signed', 'Full Signed'];
-  $finalStatuses = ['Confirmed', 'Loading', 'On Hold', 'Revision', 'Cancelled', 'Complete'];
+  $approvalStatuses = ['Request Sign', 'Half Signed', 'Full Signed'];
+  $finalStatuses = ['Wait for Approval', 'On Hold', 'Revision Approved'];
   $approvalRoutes = [
       ['group' => 'Marketing & Sales Operation', 'role' => 'Marketing Head', 'name' => 'Hardianti Asmi'],
       ['group' => 'Marketing & Sales Operation', 'role' => 'Sales Operation Head', 'name' => 'Hengki Dwiyanto'],
@@ -82,11 +82,11 @@
             <div class="grid gap-x-8 gap-y-2 lg:grid-cols-2">
               <div class="grid items-center gap-2 sm:grid-cols-[150px_1fr]">
                 <label class="{{ $labelClass }}">Contract Number</label>
-                <input name="contract_number" value="{{ old('contract_number') }}" class="{{ $fieldClass }}" required>
+                <input name="contract_number" value="{{ old('contract_number') }}" class="{{ $fieldClass }}" placeholder="Auto generated if empty">
               </div>
               <div class="grid items-center gap-2 sm:grid-cols-[150px_1fr]">
                 <label class="{{ $labelClass }}">Buyer Name</label>
-                <input name="buyer_name" value="{{ old('buyer_name') }}" list="buyer-suggestions" class="{{ $fieldClass }}" required>
+                <input name="buyer_name" value="{{ old('buyer_name') }}" list="buyer-suggestions" class="{{ $fieldClass }}">
                 <datalist id="buyer-suggestions">
                   @foreach ($buyers as $buyer)
                     <option value="{{ $buyer }}"></option>
@@ -99,7 +99,8 @@
               </div>
               <div class="grid items-center gap-2 sm:grid-cols-[150px_1fr]">
                 <label class="{{ $labelClass }}">Entity Penjual</label>
-                <select name="seller_entity" class="{{ $fieldClass }}" required>
+                <select name="seller_entity" class="{{ $fieldClass }}">
+                  <option value="">Select</option>
                   @foreach ($sellerEntities as $option)
                     <option value="{{ $option }}" @selected(old('seller_entity') === $option)>{{ $option }}</option>
                   @endforeach
@@ -107,7 +108,8 @@
               </div>
               <div class="grid items-center gap-2 sm:grid-cols-[150px_1fr]">
                 <label class="{{ $labelClass }}">Market Type</label>
-                <select name="market_type" x-model="marketType" class="{{ $fieldClass }}" required>
+                <select name="market_type" x-model="marketType" class="{{ $fieldClass }}">
+                  <option value="">Select</option>
                   @foreach ($marketTypes as $option)
                     <option value="{{ $option }}" @selected(old('market_type', 'Domestic') === $option)>{{ $option }}</option>
                   @endforeach
@@ -127,7 +129,8 @@
               </div>
               <div class="grid items-center gap-2 sm:grid-cols-[150px_1fr]">
                 <label class="{{ $labelClass }}">Status Draft</label>
-                <select name="draft_status" class="{{ $fieldClass }}" required>
+                <select name="draft_status" class="{{ $fieldClass }}">
+                  <option value="">Select</option>
                   @foreach ($draftStatuses as $option)
                     <option value="{{ $option }}" @selected(old('draft_status', 'Draft') === $option)>{{ $option }}</option>
                   @endforeach
@@ -143,7 +146,8 @@
             <div class="grid gap-x-8 gap-y-2 lg:grid-cols-2">
               <div class="grid items-center gap-2 sm:grid-cols-[150px_1fr]">
                 <label class="{{ $labelClass }}">Commodity</label>
-                <select name="commodity" class="{{ $fieldClass }}" required>
+                <select name="commodity" class="{{ $fieldClass }}">
+                  <option value="">Select</option>
                   @foreach ($commodities as $option)
                     <option value="{{ $option }}" @selected(old('commodity') === $option)>{{ $option }}</option>
                   @endforeach
@@ -169,7 +173,8 @@
               </div>
               <div class="grid items-center gap-2 sm:grid-cols-[150px_1fr]">
                 <label class="{{ $labelClass }}">Incoterms</label>
-                <select name="incoterms" class="{{ $fieldClass }}" required>
+                <select name="incoterms" class="{{ $fieldClass }}">
+                  <option value="">Select</option>
                   @foreach ($incoterms as $option)
                     <option value="{{ $option }}" @selected(old('incoterms') === $option)>{{ $option }}</option>
                   @endforeach
@@ -433,7 +438,7 @@
           <div class="bg-white p-5 shadow-sm">
             <h3 class="border-b border-slate-300 pb-2 text-base font-bold text-slate-800">Sales Contract History</h3>
             <div class="mt-4 grid grid-cols-2 gap-2">
-              @foreach (['Draft', 'Review', 'Approval', 'Confirmed', 'Loading', 'Complete'] as $label)
+              @foreach (['Draft', 'Review', 'Request Sign', 'Half Signed', 'Full Signed', 'Revision'] as $label)
                 <div class="bg-teal-700 p-3 text-white">
                   <div class="text-2xl font-light">0</div>
                   <div class="mt-3 text-xs leading-tight">{{ $label }}</div>

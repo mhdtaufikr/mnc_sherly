@@ -6,6 +6,7 @@ use App\Models\SalesContract;
 use App\Models\ShipmentCalendar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class SalesContractController extends Controller
@@ -38,9 +39,11 @@ class SalesContractController extends Controller
 
     public function store(Request $request)
     {
-        $payload = $this->validated($request);
+        $payload = array_replace($this->emptyPayload(), $this->validated($request));
         $payload['pricing_basis'] = 'ICI';
-        $payload['price_currency'] = $payload['market_type'] === 'Export' ? 'USD' : 'IDR';
+        $payload['contract_number'] = $payload['contract_number'] ?: $this->generateContractNumber();
+        $payload['draft_status'] = $payload['draft_status'] ?: 'Draft';
+        $payload['price_currency'] = ($payload['market_type'] ?? null) === 'Export' ? 'USD' : 'IDR';
 
         if (($payload['price_type'] ?? null) === 'Formula') {
             $payload['fixed_price'] = null;
@@ -73,7 +76,7 @@ class SalesContractController extends Controller
         ShipmentCalendar::updateOrCreate(
             ['sales_contract_id' => $salesContract->id],
             [
-                'buyer' => $salesContract->buyer_name,
+                'buyer' => $salesContract->buyer_name ?: 'TBA',
                 'contract_no' => $salesContract->contract_number,
                 'laycan_start' => $salesContract->laycan_start_date,
                 'laycan_end' => $salesContract->laycan_end_date,
@@ -108,31 +111,87 @@ class SalesContractController extends Controller
 
     private function calendarStatus(SalesContract $salesContract): string
     {
-        return match ($salesContract->final_status) {
-            'Loading' => 'Loading',
-            'Complete' => 'Complete',
-            default => 'Confirmed',
-        };
+        return 'Confirmed';
+    }
+
+    private function generateContractNumber(): string
+    {
+        do {
+            $contractNumber = 'SO-' . now()->format('Ymd-His') . '-' . Str::upper(Str::random(4));
+        } while (SalesContract::where('contract_number', $contractNumber)->exists());
+
+        return $contractNumber;
+    }
+
+    private function emptyPayload(): array
+    {
+        return [
+            'contract_number' => null,
+            'buyer_name' => null,
+            'buyer_reference' => null,
+            'seller_entity' => null,
+            'market_type' => null,
+            'pic_marketing' => null,
+            'submission_date' => null,
+            'submitted_by' => null,
+            'draft_status' => null,
+            'commodity' => null,
+            'contract_quantity_mt' => null,
+            'sales_quantity_mt' => null,
+            'shipment_period' => null,
+            'incoterms' => null,
+            'gar_gcv' => null,
+            'actual_gar' => null,
+            'total_moisture' => null,
+            'inherent_moisture' => null,
+            'ash' => null,
+            'ash_limit' => null,
+            'sulphur' => null,
+            'sulphur_limit' => null,
+            'size' => null,
+            'price_type' => null,
+            'fixed_price' => null,
+            'formula_price' => null,
+            'minus_plus' => null,
+            'payment_term_summary' => null,
+            'shipment_no' => null,
+            'barges' => null,
+            'eta' => null,
+            'laycan_start_date' => null,
+            'laycan_end_date' => null,
+            'load_port' => null,
+            'destination_port' => null,
+            'tug_boat_name' => null,
+            'barge_vessel_name' => null,
+            'barge_vessel_agent' => null,
+            'dmo_status' => null,
+            'surveyor' => null,
+            'laycan_status' => null,
+            'approval_status' => null,
+            'approval_date' => null,
+            'revision_note' => null,
+            'final_status' => null,
+        ];
     }
 
     private function validated(Request $request): array
     {
         return $request->validate([
-            'contract_number' => ['required', 'string', 'max:255', 'unique:sales_contracts,contract_number'],
-            'buyer_name' => ['required', 'string', 'max:255'],
+            'contract_number' => ['nullable', 'string', 'max:255', 'unique:sales_contracts,contract_number'],
+            'buyer_name' => ['nullable', 'string', 'max:255'],
             'buyer_reference' => ['nullable', 'string', 'max:255'],
-            'seller_entity' => ['required', Rule::in(['PMC', 'IBPE', 'APE'])],
-            'market_type' => ['required', Rule::in(['Domestic', 'Export'])],
+            'seller_entity' => ['nullable', Rule::in(['PMC', 'IBPE', 'APE'])],
+            'market_type' => ['nullable', Rule::in(['Domestic', 'Export'])],
             'pic_marketing' => ['nullable', 'string', 'max:255'],
             'submission_date' => ['nullable', 'date'],
             'submitted_by' => ['nullable', 'string', 'max:255'],
-            'draft_status' => ['required', Rule::in(['Draft', 'Under Review', 'Pending Approval', 'Confirmed', 'Cancelled'])],
+            'draft_status' => ['nullable', Rule::in(['Draft', 'Under Review', 'Pending Approval', 'Confirmed', 'Cancelled'])],
 
-            'commodity' => ['required', Rule::in(['Cooking Indonesian Origin', 'Non Cooking Indonesian Origin'])],
+            'commodity' => ['nullable', Rule::in(['Cooking Indonesian Origin', 'Non Cooking Indonesian Origin'])],
             'contract_quantity_mt' => ['nullable', 'numeric', 'min:0'],
             'sales_quantity_mt' => ['nullable', 'numeric', 'min:0'],
-            'shipment_period' => ['nullable', 'date_format:Y-m'],
-            'incoterms' => ['required', Rule::in(['FOB', 'CIF'])],
+            'shipment_period' => ['nullable', 'string', 'max:30'],
+            'incoterms' => ['nullable', Rule::in(['FOB', 'CIF'])],
 
             'gar_gcv' => ['nullable', Rule::in(['2700', '2800', '3000', '3500'])],
             'actual_gar' => ['nullable', 'string', 'max:255'],
@@ -145,8 +204,8 @@ class SalesContractController extends Controller
             'size' => ['nullable', Rule::in(['No Sizing', 'Sizing'])],
 
             'price_type' => ['nullable', Rule::in(['Fixed Price', 'Formula'])],
-            'fixed_price' => ['nullable', 'required_if:price_type,Fixed Price', 'numeric', 'min:0'],
-            'formula_price' => ['nullable', 'required_if:price_type,Formula', 'string'],
+            'fixed_price' => ['nullable', 'numeric', 'min:0'],
+            'formula_price' => ['nullable', 'string'],
             'minus_plus' => ['nullable', 'numeric'],
             'payment_term_summary' => ['nullable', 'string'],
 
@@ -164,10 +223,10 @@ class SalesContractController extends Controller
             'surveyor' => ['nullable', 'string', 'max:255'],
             'laycan_status' => ['nullable', Rule::in(['Confirm', 'Nego Laycan'])],
 
-            'approval_status' => ['nullable', Rule::in(['Half Signed', 'Full Signed'])],
+            'approval_status' => ['nullable', Rule::in(['Request Sign', 'Half Signed', 'Full Signed'])],
             'approval_date' => ['nullable', 'date'],
             'revision_note' => ['nullable', 'string'],
-            'final_status' => ['nullable', Rule::in(['Confirmed', 'Loading', 'On Hold', 'Revision', 'Cancelled', 'Complete'])],
+            'final_status' => ['nullable', Rule::in(['Wait for Approval', 'On Hold', 'Revision Approved'])],
             'contract_file' => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png', 'max:10240'],
         ]);
     }
