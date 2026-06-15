@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\SalesContract;
+use App\Models\ShipmentCalendar;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class SalesContractController extends Controller
@@ -47,11 +49,65 @@ class SalesContractController extends Controller
             $payload['contract_file_name'] = $file->getClientOriginalName();
         }
 
-        SalesContract::create($payload);
+        DB::transaction(function () use ($payload) {
+            $salesContract = SalesContract::create($payload);
+            $this->syncShipmentCalendar($salesContract);
+        });
 
         return redirect()
             ->route('sales-contracts.create')
             ->with('success', 'Sales contract saved successfully');
+    }
+
+    private function syncShipmentCalendar(SalesContract $salesContract): void
+    {
+        if (! $salesContract->laycan_start_date) {
+            return;
+        }
+
+        ShipmentCalendar::updateOrCreate(
+            ['sales_contract_id' => $salesContract->id],
+            [
+                'buyer' => $salesContract->buyer_name,
+                'contract_no' => $salesContract->contract_number,
+                'laycan_start' => $salesContract->laycan_start_date,
+                'laycan_end' => $salesContract->laycan_end_date,
+                'eta' => $salesContract->eta,
+                'vessel' => $this->calendarVessel($salesContract),
+                'qty' => $salesContract->sales_quantity_mt
+                    ?? $salesContract->contract_quantity_mt
+                    ?? 0,
+                'spec' => $this->calendarSpec($salesContract),
+                'laycan_status' => $this->calendarStatus($salesContract),
+                'discharge_port' => $salesContract->destination_port ?: 'TBA',
+            ]
+        );
+    }
+
+    private function calendarVessel(SalesContract $salesContract): string
+    {
+        return $salesContract->barge_vessel_name
+            ?: $salesContract->tug_boat_name
+            ?: $salesContract->shipment_no
+            ?: 'TBA';
+    }
+
+    private function calendarSpec(SalesContract $salesContract): ?string
+    {
+        return collect([
+            $salesContract->gar_gcv ? 'GAR/GCV ' . $salesContract->gar_gcv : null,
+            $salesContract->actual_gar ? 'Actual ' . $salesContract->actual_gar : null,
+            $salesContract->commodity,
+        ])->filter()->implode(' - ') ?: null;
+    }
+
+    private function calendarStatus(SalesContract $salesContract): string
+    {
+        return match ($salesContract->final_status) {
+            'Loading' => 'Loading',
+            'Complete' => 'Complete',
+            default => 'Confirmed',
+        };
     }
 
     private function validated(Request $request): array
@@ -104,7 +160,6 @@ class SalesContractController extends Controller
             'laycan_status' => ['nullable', Rule::in(['Confirm', 'Nego Laycan'])],
 
             'approval_status' => ['nullable', Rule::in(['Half Signed', 'Full Signed'])],
-            'approved_by' => ['nullable', 'string', 'max:255'],
             'approval_date' => ['nullable', 'date'],
             'revision_note' => ['nullable', 'string'],
             'final_status' => ['nullable', Rule::in(['Confirmed', 'Loading', 'On Hold', 'Revision', 'Cancelled', 'Complete'])],

@@ -18,6 +18,18 @@
   $laycanStatuses = ['Confirm', 'Nego Laycan'];
   $approvalStatuses = ['Half Signed', 'Full Signed'];
   $finalStatuses = ['Confirmed', 'Loading', 'On Hold', 'Revision', 'Cancelled', 'Complete'];
+  $approvalRoutes = [
+      ['group' => 'Marketing & Sales Operation', 'role' => 'Marketing Head', 'name' => 'Hardianti Asmi'],
+      ['group' => 'Marketing & Sales Operation', 'role' => 'Sales Operation Head', 'name' => 'Hengki Dwiyanto'],
+      ['group' => 'Marketing & Sales Operation', 'role' => 'General Manager Marketing & Sales Operation', 'name' => 'Daniel Tambunan'],
+      ['group' => 'Finance & Accounting', 'role' => 'Finance Head', 'name' => 'Dina Anggraini'],
+      ['group' => 'Finance & Accounting', 'role' => 'General Manager Finance', 'name' => 'Mochamad Ari'],
+      ['group' => 'Finance & Accounting', 'role' => 'General Manager Accounting', 'name' => 'Chandra Liew'],
+      ['group' => 'Legal', 'role' => 'General Manager Legal', 'name' => 'Gillbert T'],
+      ['group' => 'Board Approval', 'role' => 'Deputy CFO', 'name' => 'Christian'],
+      ['group' => 'Board Approval', 'role' => 'CFO', 'name' => 'Andrea Frans Tambunan'],
+      ['group' => 'Board Approval', 'role' => 'President Director', 'name' => 'Suryo Eko Hardianto'],
+  ];
 @endphp
 
 @section('content')
@@ -353,10 +365,6 @@
                 </select>
               </div>
               <div class="grid items-center gap-2 sm:grid-cols-[150px_1fr]">
-                <label class="{{ $labelClass }}">Approved By</label>
-                <input name="approved_by" value="{{ old('approved_by') }}" class="{{ $fieldClass }}">
-              </div>
-              <div class="grid items-center gap-2 sm:grid-cols-[150px_1fr]">
                 <label class="{{ $labelClass }}">Approval Date</label>
                 <input type="date" name="approval_date" value="{{ old('approval_date') }}" class="{{ $fieldClass }}">
               </div>
@@ -372,6 +380,29 @@
               <div class="grid items-start gap-2 sm:grid-cols-[150px_1fr] lg:col-span-2">
                 <label class="{{ $labelClass }} pt-1.5">Revision Note</label>
                 <textarea name="revision_note" rows="3" class="w-full border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-1 focus:ring-teal-700">{{ old('revision_note') }}</textarea>
+              </div>
+              <div class="lg:col-span-2">
+                <div class="mt-3 border border-slate-200 bg-slate-50 p-4">
+                  <div class="mb-3 flex items-center justify-between border-b border-slate-300 pb-2">
+                    <h3 class="text-sm font-bold text-slate-800">Approval Route</h3>
+                    <span class="text-xs font-semibold text-teal-700">Fixed routing</span>
+                  </div>
+
+                  <div class="grid gap-3 md:grid-cols-2">
+                    @foreach ($approvalRoutes as $route)
+                      <div class="grid grid-cols-[32px_1fr] gap-3 border border-slate-200 bg-white p-3">
+                        <div class="flex h-8 w-8 items-center justify-center bg-teal-700 text-xs font-bold text-white">
+                          {{ $loop->iteration }}
+                        </div>
+                        <div class="min-w-0">
+                          <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $route['group'] }}</div>
+                          <div class="mt-1 text-sm font-semibold text-slate-800">{{ $route['role'] }}</div>
+                          <div class="text-sm text-slate-600">{{ $route['name'] }}</div>
+                        </div>
+                      </div>
+                    @endforeach
+                  </div>
+                </div>
               </div>
             </div>
           </section>

@@ -10,6 +10,7 @@ class ShipmentCalendar extends Model
     use HasFactory;
 
     protected $fillable = [
+        'sales_contract_id',
         'buyer',
         'contract_no',
         'laycan_start',
@@ -30,5 +31,10 @@ class ShipmentCalendar extends Model
             'eta' => 'date',
             'qty' => 'decimal:2',
         ];
+    }
+
+    public function salesContract()
+    {
+        return $this->belongsTo(SalesContract::class);
     }
 }

@@ -76,4 +76,9 @@ class SalesContract extends Model
             'minus_plus' => 'decimal:2',
         ];
     }
+
+    public function shipmentCalendar()
+    {
+        return $this->hasOne(ShipmentCalendar::class);
+    }
 }
