@@ -6,6 +6,7 @@ use App\Models\SalesContract;
 use App\Models\ShipmentCalendar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -23,6 +24,16 @@ class SalesContractController extends Controller
 
     public function create()
     {
+        return view('sales-contracts.create', $this->formData());
+    }
+
+    public function edit(SalesContract $salesContract)
+    {
+        return view('sales-contracts.create', $this->formData($salesContract));
+    }
+
+    private function formData(?SalesContract $salesContract = null): array
+    {
         $buyers = SalesContract::query()
             ->whereNotNull('buyer_name')
             ->distinct()
@@ -34,28 +45,12 @@ class SalesContractController extends Controller
             ->take(6)
             ->get(['contract_number', 'buyer_name', 'draft_status', 'final_status', 'created_at']);
 
-        return view('sales-contracts.create', compact('buyers', 'recentContracts'));
+        return compact('buyers', 'recentContracts', 'salesContract');
     }
 
     public function store(Request $request)
     {
-        $payload = array_replace($this->emptyPayload(), $this->validated($request));
-        $payload['pricing_basis'] = 'ICI';
-        $payload['contract_number'] = $payload['contract_number'] ?: $this->generateContractNumber();
-        $payload['draft_status'] = $payload['draft_status'] ?: 'Draft';
-        $payload['price_currency'] = ($payload['market_type'] ?? null) === 'Export' ? 'USD' : 'IDR';
-
-        if (($payload['price_type'] ?? null) === 'Formula') {
-            $payload['fixed_price'] = null;
-        } else {
-            $payload['formula_price'] = null;
-        }
-
-        if ($request->hasFile('contract_file')) {
-            $file = $request->file('contract_file');
-            $payload['contract_file_path'] = $file->store('contracts', 'public');
-            $payload['contract_file_name'] = $file->getClientOriginalName();
-        }
+        $payload = $this->payloadFromRequest($request);
 
         DB::transaction(function () use ($payload) {
             $salesContract = SalesContract::create($payload);
@@ -67,9 +62,71 @@ class SalesContractController extends Controller
             ->with('success', 'Sales contract saved successfully');
     }
 
+    public function update(Request $request, SalesContract $salesContract)
+    {
+        $payload = $this->payloadFromRequest($request, $salesContract);
+
+        DB::transaction(function () use ($salesContract, $payload) {
+            $salesContract->update($payload);
+            $this->syncShipmentCalendar($salesContract->fresh());
+        });
+
+        return redirect()
+            ->route('sales-contracts.index')
+            ->with('success', 'Sales contract updated successfully');
+    }
+
+    public function destroy(SalesContract $salesContract)
+    {
+        DB::transaction(function () use ($salesContract) {
+            $salesContract->shipmentCalendar?->delete();
+
+            if ($salesContract->contract_file_path) {
+                Storage::disk('public')->delete($salesContract->contract_file_path);
+            }
+
+            $salesContract->delete();
+        });
+
+        return redirect()
+            ->route('sales-contracts.index')
+            ->with('success', 'Sales contract deleted successfully');
+    }
+
+    private function payloadFromRequest(Request $request, ?SalesContract $salesContract = null): array
+    {
+        $payload = array_replace($this->emptyPayload(), $this->validated($request, $salesContract));
+        $payload['pricing_basis'] = 'ICI';
+        $payload['contract_number'] = $payload['contract_number'] ?: ($salesContract?->contract_number ?: $this->generateContractNumber());
+        $payload['draft_status'] = $payload['draft_status'] ?: 'Draft';
+        $payload['price_currency'] = ($payload['market_type'] ?? null) === 'Export' ? 'USD' : 'IDR';
+
+        if (($payload['price_type'] ?? null) === 'Formula') {
+            $payload['fixed_price'] = null;
+        } else {
+            $payload['formula_price'] = null;
+        }
+
+        if ($request->hasFile('contract_file')) {
+            if ($salesContract?->contract_file_path) {
+                Storage::disk('public')->delete($salesContract->contract_file_path);
+            }
+
+            $file = $request->file('contract_file');
+            $payload['contract_file_path'] = $file->store('contracts', 'public');
+            $payload['contract_file_name'] = $file->getClientOriginalName();
+        } elseif ($salesContract) {
+            $payload['contract_file_path'] = $salesContract->contract_file_path;
+            $payload['contract_file_name'] = $salesContract->contract_file_name;
+        }
+
+        return $payload;
+    }
+
     private function syncShipmentCalendar(SalesContract $salesContract): void
     {
         if (! $salesContract->laycan_start_date) {
+            $salesContract->shipmentCalendar?->delete();
             return;
         }
 
@@ -174,10 +231,15 @@ class SalesContractController extends Controller
         ];
     }
 
-    private function validated(Request $request): array
+    private function validated(Request $request, ?SalesContract $salesContract = null): array
     {
         return $request->validate([
-            'contract_number' => ['nullable', 'string', 'max:255', 'unique:sales_contracts,contract_number'],
+            'contract_number' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('sales_contracts', 'contract_number')->ignore($salesContract?->id),
+            ],
             'buyer_name' => ['nullable', 'string', 'max:255'],
             'buyer_reference' => ['nullable', 'string', 'max:255'],
             'seller_entity' => ['nullable', Rule::in(['PMC', 'IBPE', 'APE'])],

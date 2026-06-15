@@ -32,6 +32,7 @@
               <th class="px-3 py-3 font-semibold">Status</th>
               <th class="px-3 py-3 font-semibold">Calendar</th>
               <th class="px-3 py-3 font-semibold">Attachment</th>
+              <th class="px-3 py-3 font-semibold">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -85,10 +86,28 @@
                     <span class="text-slate-400">No file</span>
                   @endif
                 </td>
+                <td class="px-3 py-3">
+                  <div class="flex items-center gap-2">
+                    <a href="{{ route('sales-contracts.edit', $contract) }}"
+                      class="inline-flex items-center bg-teal-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-teal-800">
+                      Edit
+                    </a>
+
+                    <form method="POST" action="{{ route('sales-contracts.destroy', $contract) }}"
+                      onsubmit="return confirm('Delete this sales order?')" class="inline">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit"
+                        class="inline-flex items-center bg-red-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
               </tr>
             @empty
               <tr>
-                <td colspan="10" class="px-3 py-10 text-center text-slate-500">
+                <td colspan="11" class="px-3 py-10 text-center text-slate-500">
                   No sales order submitted yet.
                 </td>
               </tr>

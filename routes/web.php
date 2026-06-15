@@ -29,6 +29,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales-contracts', [SalesContractController::class, 'index'])->name('sales-contracts.index');
     Route::get('/sales-contracts/create', [SalesContractController::class, 'create'])->name('sales-contracts.create');
     Route::post('/sales-contracts', [SalesContractController::class, 'store'])->name('sales-contracts.store');
+    Route::get('/sales-contracts/{salesContract}/edit', [SalesContractController::class, 'edit'])->name('sales-contracts.edit');
+    Route::put('/sales-contracts/{salesContract}', [SalesContractController::class, 'update'])->name('sales-contracts.update');
+    Route::delete('/sales-contracts/{salesContract}', [SalesContractController::class, 'destroy'])->name('sales-contracts.destroy');
 
     //Calendar Controller
     Route::get('/calendar', [ShipmentCalendarsController::class, 'index'])->name('calendar.index');
