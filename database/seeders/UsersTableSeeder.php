@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Support\SalesApprovalRoute;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -13,7 +14,7 @@ class UsersTableSeeder extends Seeder
     {
         $now = Carbon::now();
 
-        DB::table('users')->upsert([
+        $users = [
             [
                 'name' => 'Admin',
                 'username' => 'admin',
@@ -41,8 +42,27 @@ class UsersTableSeeder extends Seeder
                 'login_counter' => 0,
                 'created_at' => $now,
                 'updated_at' => $now,
-            ]
-        ], ['email'], [
+            ],
+        ];
+
+        foreach (SalesApprovalRoute::approvers() as $approver) {
+            $users[] = [
+                'name' => $approver['name'],
+                'username' => $approver['username'],
+                'email' => $approver['email'],
+                'email_verified_at' => null,
+                'password' => Hash::make('Password.1'),
+                'remember_token' => null,
+                'role' => 'user',
+                'status' => 'ACTIVE',
+                'is_active' => true,
+                'login_counter' => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        DB::table('users')->upsert($users, ['email'], [
             'name',
             'username',
             'password',

@@ -1,5 +1,6 @@
 @php
   $isFormsActive = request()->is('sales-contracts*') || request()->is('dropdown*') || request()->is('rule*') || request()->is('user*');
+  $isApprovalUser = in_array(auth()->user()->username, \App\Support\SalesApprovalRoute::usernames(), true);
 @endphp
 
 <div class="relative">
@@ -19,6 +20,11 @@
         <a href="{{ route('sales-contracts.index') }}" class="{{ $isFormsActive ? 'text-white' : 'hover:text-white' }}">
           Forms
         </a>
+        @if ($isApprovalUser)
+          <a href="{{ route('approvals.index') }}" class="{{ request()->is('approvals*') ? 'text-white' : 'hover:text-white' }}">
+            Approval
+          </a>
+        @endif
       </nav>
     </div>
 
@@ -89,6 +95,12 @@
         class="{{ $isFormsActive ? 'bg-white/10 text-white' : 'hover:bg-white/10 hover:text-white' }} rounded px-3 py-2 transition">
         Forms
       </a>
+      @if ($isApprovalUser)
+        <a href="{{ route('approvals.index') }}" onclick="closeTopbarMenu()"
+          class="{{ request()->is('approvals*') ? 'bg-white/10 text-white' : 'hover:bg-white/10 hover:text-white' }} rounded px-3 py-2 transition">
+          Approval
+        </a>
+      @endif
     </div>
   </nav>
 </div>

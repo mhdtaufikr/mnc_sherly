@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\SalesContract;
+use App\Models\SalesContractApproval;
 use App\Models\ShipmentCalendar;
+use App\Models\User;
+use App\Support\SalesApprovalRoute;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -32,6 +35,14 @@ class SalesContractController extends Controller
         return view('sales-contracts.create', $this->formData($salesContract));
     }
 
+    public function show(SalesContract $salesContract)
+    {
+        $this->ensureApprovalRoute($salesContract);
+        $salesContract->load(['approvals', 'shipmentCalendar']);
+
+        return view('sales-contracts.show', compact('salesContract'));
+    }
+
     private function formData(?SalesContract $salesContract = null): array
     {
         $buyers = SalesContract::query()
@@ -54,6 +65,7 @@ class SalesContractController extends Controller
 
         DB::transaction(function () use ($payload) {
             $salesContract = SalesContract::create($payload);
+            $this->ensureApprovalRoute($salesContract);
             $this->syncShipmentCalendar($salesContract);
         });
 
@@ -68,7 +80,9 @@ class SalesContractController extends Controller
 
         DB::transaction(function () use ($salesContract, $payload) {
             $salesContract->update($payload);
-            $this->syncShipmentCalendar($salesContract->fresh());
+            $freshContract = $salesContract->fresh();
+            $this->ensureApprovalRoute($freshContract);
+            $this->syncShipmentCalendar($freshContract);
         });
 
         return redirect()
@@ -147,6 +161,31 @@ class SalesContractController extends Controller
                 'discharge_port' => $salesContract->destination_port ?: 'TBA',
             ]
         );
+    }
+
+    private function ensureApprovalRoute(SalesContract $salesContract): void
+    {
+        $users = User::whereIn('username', SalesApprovalRoute::usernames())
+            ->get()
+            ->keyBy('username');
+
+        foreach (SalesApprovalRoute::approvers() as $approver) {
+            SalesContractApproval::firstOrCreate(
+                [
+                    'sales_contract_id' => $salesContract->id,
+                    'approver_username' => $approver['username'],
+                ],
+                [
+                    'user_id' => $users->get($approver['username'])?->id,
+                    'approval_order' => $approver['order'],
+                    'approval_stage' => $approver['stage'],
+                    'approval_group' => $approver['group'],
+                    'position' => $approver['position'],
+                    'approver_name' => $approver['name'],
+                    'status' => 'Pending',
+                ]
+            );
+        }
     }
 
     private function calendarVessel(SalesContract $salesContract): string

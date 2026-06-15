@@ -119,6 +119,26 @@
             </button>
           </form>
 
+          <div class="mt-7 border-t border-[#ffd3e1] pt-6">
+            <p class="text-center text-sm font-bold text-[#c2255c]">Approval Login</p>
+            <div class="mt-4 grid gap-2">
+              @foreach (\App\Support\SalesApprovalRoute::approvers() as $approver)
+                <form action="{{ route('auth.login') }}" method="POST">
+                  @csrf
+                  <input type="hidden" name="approval_username" value="{{ $approver['username'] }}">
+                  <button type="submit"
+                    class="flex w-full items-center justify-between rounded-lg border border-[#ffc2d7] bg-white/80 px-3 py-2 text-left text-xs font-semibold text-[#7a2945] transition hover:border-[#f74f91] hover:bg-[#fff5f9]">
+                    <span>
+                      <span class="block text-sm">{{ $approver['name'] }}</span>
+                      <span class="block font-medium text-[#a55270]">{{ $approver['position'] }}</span>
+                    </span>
+                    <span class="text-[#d6336c]">&hearts;</span>
+                  </button>
+                </form>
+              @endforeach
+            </div>
+          </div>
+
           <p class="mt-6 text-center text-xs font-semibold uppercase tracking-[0.22em] text-[#c76a8b]">
             From Taufik with love
           </p>

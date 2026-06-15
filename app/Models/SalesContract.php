@@ -81,4 +81,9 @@ class SalesContract extends Model
     {
         return $this->hasOne(ShipmentCalendar::class);
     }
+
+    public function approvals()
+    {
+        return $this->hasMany(SalesContractApproval::class)->orderBy('approval_order');
+    }
 }

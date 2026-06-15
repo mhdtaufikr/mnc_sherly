@@ -88,6 +88,11 @@
                 </td>
                 <td class="px-3 py-3">
                   <div class="flex items-center gap-2">
+                    <a href="{{ route('sales-contracts.show', $contract) }}"
+                      class="inline-flex items-center bg-slate-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800">
+                      View
+                    </a>
+
                     <a href="{{ route('sales-contracts.edit', $contract) }}"
                       class="inline-flex items-center bg-teal-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-teal-800">
                       Edit

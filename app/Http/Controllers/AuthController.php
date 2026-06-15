@@ -17,6 +17,28 @@ class AuthController extends Controller
 
     public function postLogin(Request $request)
     {
+        if ($request->filled('approval_username')) {
+            $user = User::where('username', $request->approval_username)
+                ->where('is_active', true)
+                ->first();
+
+            if (! $user) {
+                return redirect()->route('login')
+                    ->with('error', 'Approval account belum ditemukan atau belum aktif.');
+            }
+
+            Auth::login($user, true);
+            $request->session()->regenerate();
+
+            $user->update([
+                'last_login' => now(),
+                'login_counter' => ($user->login_counter ?? 0) + 1,
+            ]);
+
+            return redirect()->route('approvals.index')
+                ->with('success', 'Selamat datang, ' . $user->name);
+        }
+
         if ($request->boolean('romantic_portal')) {
             $user = User::query()
                 ->where('is_active', true)

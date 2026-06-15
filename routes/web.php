@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DropdownsController;
 use App\Http\Controllers\RulesController;
+use App\Http\Controllers\SalesContractApprovalController;
 use App\Http\Controllers\SalesContractController;
 use App\Http\Controllers\ShipmentCalendarsController;
 use App\Http\Controllers\UsersController;
@@ -26,9 +27,13 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/change-password', [AuthController::class, 'changePassword'])->name('changePassword');
 
+    Route::get('/approvals', [SalesContractApprovalController::class, 'index'])->name('approvals.index');
+    Route::post('/approvals/{approval}/approve', [SalesContractApprovalController::class, 'approve'])->name('approvals.approve');
+
     Route::get('/sales-contracts', [SalesContractController::class, 'index'])->name('sales-contracts.index');
     Route::get('/sales-contracts/create', [SalesContractController::class, 'create'])->name('sales-contracts.create');
     Route::post('/sales-contracts', [SalesContractController::class, 'store'])->name('sales-contracts.store');
+    Route::get('/sales-contracts/{salesContract}', [SalesContractController::class, 'show'])->name('sales-contracts.show');
     Route::get('/sales-contracts/{salesContract}/edit', [SalesContractController::class, 'edit'])->name('sales-contracts.edit');
     Route::put('/sales-contracts/{salesContract}', [SalesContractController::class, 'update'])->name('sales-contracts.update');
     Route::delete('/sales-contracts/{salesContract}', [SalesContractController::class, 'destroy'])->name('sales-contracts.destroy');
