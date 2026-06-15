@@ -1,5 +1,13 @@
 @extends('layouts.master')
 
+@php
+  $approvalTotal = $salesContract->approvals->count();
+  $approvedTotal = $salesContract->approvals->where('status', 'Approved')->count();
+  $displayFinalStatus = $approvalTotal > 0 && $approvedTotal === $approvalTotal
+      ? 'Revision Approved'
+      : $salesContract->final_status;
+@endphp
+
 @section('content')
   <div class="space-y-4">
     <div class="bg-white shadow-sm">
@@ -34,7 +42,7 @@
               'Submitted By' => $salesContract->submitted_by,
               'Draft Status' => $salesContract->draft_status,
               'Approval Status' => $salesContract->approval_status,
-              'Final Status' => $salesContract->final_status,
+              'Final Status' => $displayFinalStatus,
               'Commodity' => $salesContract->commodity,
               'Contract Quantity' => $salesContract->contract_quantity_mt ? number_format((float) $salesContract->contract_quantity_mt, 2) . ' MT' : null,
               'Sales Quantity' => $salesContract->sales_quantity_mt ? number_format((float) $salesContract->sales_quantity_mt, 2) . ' MT' : null,

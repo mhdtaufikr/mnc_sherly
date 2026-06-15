@@ -44,6 +44,8 @@ class SalesContractController extends Controller
     {
         $this->ensureApprovalRoute($salesContract);
         $salesContract->load(['approvals', 'shipmentCalendar']);
+        $this->refreshApprovalStatusFromLogs($salesContract);
+        $salesContract->refresh()->load(['approvals', 'shipmentCalendar']);
 
         return view('sales-contracts.show', compact('salesContract'));
     }

@@ -37,6 +37,13 @@
           </thead>
           <tbody>
             @forelse ($contracts as $contract)
+              @php
+                $approvalTotal = $contract->approvals->count();
+                $approvedTotal = $contract->approvals->where('status', 'Approved')->count();
+                $displayStatus = $approvalTotal > 0 && $approvedTotal === $approvalTotal
+                    ? 'Revision Approved'
+                    : ($contract->final_status ?? $contract->draft_status);
+              @endphp
               <tr class="border-b border-slate-100 text-slate-700 hover:bg-slate-50">
                 <td class="px-3 py-3 font-semibold text-slate-900">{{ $contract->contract_number }}</td>
                 <td class="px-3 py-3">{{ $contract->buyer_name ?: '-' }}</td>
@@ -62,7 +69,7 @@
                 </td>
                 <td class="px-3 py-3">
                   <span class="inline-flex bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
-                    {{ $contract->final_status ?? $contract->draft_status }}
+                    {{ $displayStatus }}
                   </span>
                 </td>
                 <td class="px-3 py-3">
