@@ -12,13 +12,14 @@ class ShipmentCalendarsController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = ShipmentCalendar::query()->latest();
+            $query = ShipmentCalendar::query()->with('salesContract')->latest();
 
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->editColumn('laycan_start', fn ($row) => $row->laycan_start?->format('Y-m-d'))
                 ->editColumn('laycan_end', fn ($row) => $row->laycan_end?->format('Y-m-d') ?: '-')
                 ->editColumn('eta', fn ($row) => $row->eta?->format('Y-m-d') ?: '-')
+                ->editColumn('vessel', fn ($row) => $this->displayVessel($row))
                 ->editColumn('qty', fn ($row) => number_format((float) $row->qty, 2))
                 ->addColumn('laycan_period', function ($row) {
                     $start = $row->laycan_start?->format('d M Y');
@@ -33,9 +34,10 @@ class ShipmentCalendarsController extends Controller
                         'Complete' => 'bg-green-100 text-green-700',
                     ];
 
-                    $class = $classes[$row->laycan_status] ?? 'bg-slate-100 text-slate-700';
+                    $status = $this->displayStatus($row);
+                    $class = $classes[$status] ?? 'bg-slate-100 text-slate-700';
 
-                    return '<span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold ' . $class . '">' . e($row->laycan_status) . '</span>';
+                    return '<span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold ' . $class . '">' . e($status) . '</span>';
                 })
                 ->addColumn('action', function ($row) {
                     return '
@@ -49,10 +51,10 @@ class ShipmentCalendarsController extends Controller
                                 data-laycan_start="' . e($row->laycan_start?->format('Y-m-d')) . '"
                                 data-laycan_end="' . e($row->laycan_end?->format('Y-m-d')) . '"
                                 data-eta="' . e($row->eta?->format('Y-m-d')) . '"
-                                data-vessel="' . e($row->vessel) . '"
+                                data-vessel="' . e($this->displayVessel($row)) . '"
                                 data-qty="' . e($row->qty) . '"
                                 data-spec="' . e($row->spec) . '"
-                                data-laycan_status="' . e($row->laycan_status) . '"
+                                data-laycan_status="' . e($this->displayStatus($row)) . '"
                                 data-discharge_port="' . e($row->discharge_port) . '">
                                 Edit
                             </button>
@@ -78,20 +80,23 @@ class ShipmentCalendarsController extends Controller
     public function events()
     {
         $colors = [
-            'Confirmed' => ['background' => '#15803d', 'border' => '#166534'],
+            'Confirmed' => ['background' => '#0369a1', 'border' => '#075985'],
             'Loading' => ['background' => '#d97706', 'border' => '#b45309'],
             'Complete' => ['background' => '#15803d', 'border' => '#166534'],
         ];
 
         return ShipmentCalendar::query()
+            ->with('salesContract')
             ->orderBy('laycan_start')
             ->get()
             ->map(function ($row) use ($colors) {
-                $color = $colors[$row->laycan_status] ?? $colors['Confirmed'];
+                $status = $this->displayStatus($row);
+                $vessel = $this->displayVessel($row);
+                $color = $colors[$status] ?? $colors['Confirmed'];
 
                 return [
                     'id' => $row->id,
-                    'title' => "{$row->buyer} - {$row->contract_no}",
+                    'title' => "{$row->buyer} - {$vessel}",
                     'start' => $row->laycan_start?->format('Y-m-d'),
                     'end' => $row->laycan_end ? $row->laycan_end->copy()->addDay()->format('Y-m-d') : null,
                     'backgroundColor' => $color['background'],
@@ -101,14 +106,37 @@ class ShipmentCalendarsController extends Controller
                         'buyer' => $row->buyer,
                         'contract_no' => $row->contract_no,
                         'eta' => $row->eta?->format('Y-m-d'),
-                        'vessel' => $row->vessel,
+                        'vessel' => $vessel,
                         'qty' => number_format((float) $row->qty, 2),
                         'spec' => $row->spec,
-                        'laycan_status' => $row->laycan_status,
+                        'laycan_status' => $status,
                         'discharge_port' => $row->discharge_port,
                     ],
                 ];
             });
+    }
+
+    private function displayVessel(ShipmentCalendar $calendar): string
+    {
+        $contract = $calendar->salesContract;
+
+        if (! $contract) {
+            return $calendar->vessel ?: 'TBA';
+        }
+
+        return collect([
+            $contract->tug_boat_name,
+            $contract->barge_vessel_name,
+        ])->filter()->implode(' / ') ?: ($calendar->vessel ?: $contract->shipment_no ?: 'TBA');
+    }
+
+    private function displayStatus(ShipmentCalendar $calendar): string
+    {
+        if ($calendar->laycan_status === 'Complete' && $calendar->laycan_start?->isFuture()) {
+            return 'Confirmed';
+        }
+
+        return $calendar->laycan_status ?: 'Confirmed';
     }
 
     public function store(Request $request)

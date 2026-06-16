@@ -290,8 +290,10 @@ class SalesContractController extends Controller
 
     private function calendarVessel(SalesContract $salesContract): string
     {
-        return $salesContract->barge_vessel_name
-            ?: $salesContract->tug_boat_name
+        return collect([
+            $salesContract->tug_boat_name,
+            $salesContract->barge_vessel_name,
+        ])->filter()->implode(' / ')
             ?: $salesContract->shipment_no
             ?: 'TBA';
     }

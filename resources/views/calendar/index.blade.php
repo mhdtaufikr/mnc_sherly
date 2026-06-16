@@ -40,7 +40,7 @@
         </div>
 
         <div class="mt-6 rounded bg-slate-50 p-4 text-sm text-slate-600">
-          Click a calendar item to see buyer, contract, ETA, vessel, quantity, spec, status, and discharge port.
+          Click a calendar item to see buyer, ETA, vessel, quantity, spec, status, and discharge port.
         </div>
       </div>
     </div>
@@ -217,7 +217,6 @@
               const html = `
                 <div class="text-left text-sm">
                   <div><b>Buyer:</b> ${props.buyer ?? '-'}</div>
-                  <div><b>No Kontrak:</b> ${props.contract_no ?? '-'}</div>
                   <div><b>ETA:</b> ${props.eta ?? '-'}</div>
                   <div><b>TB/BG/Vessel:</b> ${props.vessel ?? '-'}</div>
                   <div><b>Qty:</b> ${props.qty ?? '-'}</div>
